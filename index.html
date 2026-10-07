@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DTM Interview Assistant</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f8fb;
+      color: #163a4a;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+    .app {
+      width: min(1100px, 96vw);
+      margin: 12px auto;
+      padding: 12px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    h1 {
+      text-align: center;
+      color: #009EDB;
+      margin: 0 0 6px;
+      font-size: 26px;
+    }
+    .counter, .language {
+      text-align: center;
+      color: #5f6368;
+      margin: 4px 0;
+      font-size: 14px;
+    }
+    .question-row,
+    .bottom-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      width: 100%;
+    }
+    .question-box,
+    .question-info-box {
+      background: #e8f4f9;
+      border: 1px solid #b8d9e5;
+      border-radius: 10px;
+      padding: 12px 14px;
+      line-height: 1.35;
+      text-align: left;
+      color: #21414f;
+      white-space: pre-wrap;
+    }
+    .question-box {
+      flex: 1 1 0;
+      min-height: 78px;
+      font-size: 21px;
+    }
+    .question-box-label,
+    .question-info-label {
+      font-weight: bold;
+      font-size: 13px;
+      color: #4f6b78;
+      margin-bottom: 5px;
+    }
+    .question-info-box {
+      flex: 1 1 0;
+      min-height: 78px;
+      font-size: 18px;
+      margin: 0;
+      display: none;
+    }
+    .bottom-row {
+      margin-top: 10px;
+    }
+    .bottom-row > .question-info-box {
+      flex: 1 1 0;
+      min-width: 0;
+      margin: 0;
+    }
+    .answer-section {
+      width: 100%;
+      margin-top: 12px;
+    }
+    .answer-title {
+      font-weight: bold;
+      font-size: 15px;
+      color: #4f6b78;
+      margin: 0 0 5px;
+    }
+    .answer-box {
+      width: 100%;
+      min-height: 120px;
+      padding: 14px;
+      background: #ffffff;
+      border: 1px solid #b8d9e5;
+      border-radius: 10px;
+      color: #21414f;
+      font-size: 18px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .answer-box:focus {
+      border-color: #009EDB;
+      box-shadow: 0 0 0 2px rgba(0, 158, 219, 0.12);
+    }
+    .answer-help {
+      margin: -1px 0 7px;
+      font-size: 12px;
+      color: #6b8490;
+    }
+    .answer-checkbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .answer-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 8px 10px;
+      border: 1px solid #d3e7ee;
+      border-radius: 8px;
+      background: #f8fcfe;
+      cursor: pointer;
+    }
+    .answer-option:hover {
+      background: #eef9fd;
+      border-color: #a9d7e6;
+    }
+    .answer-option input[type=checkbox] {
+      width: 24px;
+      height: 24px;
+      margin: 1px 0 0;
+      accent-color: #009EDB;
+      flex: 0 0 auto;
+      touch-action: manipulation;
+    }
+    .answer-option span {
+      flex: 1 1 auto;
+    }
+    .answer-textarea {
+      width: 100%;
+      min-height: 120px;
+      border: 0;
+      outline: none;
+      resize: vertical;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      line-height: inherit;
+    }
+    .answer-save-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+    #saveAnswerBtn {
+      min-height: 48px;
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 18px;
+      background: #009EDB;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    #saveAnswerBtn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .question-audio-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .question-audio-row button {
+      width: auto;
+      min-height: 48px;
+      flex: 0 0 auto;
+      padding: 11px 16px;
+      font-size: 16px;
+      touch-action: manipulation;
+    }
+    .question-audio-row .language {
+      flex: 1;
+      margin: 0;
+    }
+    #questionAudio {
+      width: 100%;
+      max-width: 700px;
+      display: none;
+      margin: 6px auto 0;
+    }
+    .action-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      margin: 8px 0;
+    }
+    .action-row button {
+      flex: 1 1 0;
+      width: auto;
+      min-height: 50px;
+      margin: 0;
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    #startBtn { background: #009EDB; color: white; }
+    #stopBtn { background: #5f93a8; color: white; }
+    #nextBtn { background: #7fb6c8; color: white; }
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .status {
+      text-align: center;
+      color: #315a6d;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 8px 0;
+      min-height: 20px;
+    }
+    .live-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      width: 100%;
+      margin-top: 2px;
+    }
+    .live-panel {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .live-panel-label {
+      font-weight: bold;
+      font-size: 13px;
+      color: #4f6b78;
+      margin-bottom: 5px;
+    }
+    .live {
+      background: #ffffff;
+      border: 1px solid #b8d9e5;
+      border-radius: 10px;
+      min-height: 120px;
+      padding: 14px;
+      font-size: 18px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    .live.translation-live {
+      background: #eaf6fb;
+      border-color: #b8d9e5;
+    }
+    .error {
+      color: #d93025;
+      white-space: pre-wrap;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .saved {
+      color: #188038;
+      text-align: center;
+      font-weight: bold;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    /* Tablet layout: keep Chinese + English side-by-side, stack the live panels,
+       and enlarge controls for touch. */
+    @media (max-width: 900px) {
+      .app {
+        width: 100%;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+
+      .counter, .language {
+        font-size: 16px;
+      }
+
+      .question-box {
+        min-height: 108px;
+        font-size: 22px;
+      }
+
+      .question-info-box {
+        min-height: 108px;
+        font-size: 19px;
+      }
+
+      .question-row {
+        gap: 12px;
+      }
+
+      .live-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .live {
+        min-height: 150px;
+        font-size: 19px;
+      }
+
+      .answer-box {
+        min-height: 150px;
+        font-size: 18px;
+      }
+
+      .answer-option {
+        min-height: 50px;
+        padding: 11px 12px;
+        gap: 12px;
+        font-size: 17px;
+      }
+
+      .status {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .question-row,
+      .bottom-row,
+      .action-row {
+        flex-direction: column;
+      }
+
+      .question-box,
+      .question-info-box {
+        width: 100%;
+        min-height: 90px;
+      }
+
+      .action-row {
+        gap: 8px;
+      }
+
+      .action-row button {
+        width: 100%;
+      }
+
+      .question-audio-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .question-audio-row button {
+        width: 100%;
+      }
+
+      .answer-save-row {
+        justify-content: stretch;
+      }
+
+      #saveAnswerBtn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <h1>🎤 DTM Interview Assistant</h1>
+
+  <div id="counter" class="counter">Loading questions...</div>
+
+  <div class="question-row">
+    <div id="questionBox" class="question-box">
+      <div class="question-box-label">Chinese</div>
+      <div id="question">Loading...</div>
+    </div>
+    <div id="sheetQuestion" class="question-info-box">
+      <div class="question-info-label">English</div>
+      <div id="sheetQuestionText"></div>
+    </div>
+  </div>
+
+  <div id="language" class="language"></div>
+
+  <div id="questionAudioWrap" style="display:none; margin: 8px 0 10px; text-align:center;">
+    <div class="question-audio-row">
+      <button id="playQuestionBtn" type="button" onclick="playQuestionAudio()">▶ Play Audio</button>
+      <div id="audioStatus" class="language"></div>
+    </div>
+    <audio id="questionAudio" controls preload="none"></audio>
+  </div>
+
+  <div class="action-row">
+    <button id="startBtn" onclick="startAnswer()">🎤 Start Answer</button>
+    <button id="stopBtn" onclick="stopAnswer()" disabled>Stop &amp; Save</button>
+    <button id="nextBtn" onclick="nextQuestion()">Next Question</button>
+  </div>
+
+  <div id="status" class="status">Loading...</div>
+
+  <div class="live-row">
+    <div class="live-panel">
+      <div class="live-panel-label">Live transcription</div>
+      <div id="transcript" class="live">Press Start Answer and speak.</div>
+    </div>
+    <div class="live-panel">
+      <div class="live-panel-label">Live English translation</div>
+      <div id="liveEnglishTranslation" class="live translation-live">Waiting for speech...</div>
+    </div>
+  </div>
+
+  <div id="saved" class="saved"></div>
+
+  <div class="answer-section">
+    <div class="answer-title">Answer</div>
+    <div id="answerHelp" class="answer-help"></div>
+    <div id="sheetAnswers" class="answer-box" aria-label="Answer"></div>
+    <div class="answer-save-row">
+      <button id="saveAnswerBtn" type="button" onclick="saveEditableAnswer()">Save Answer</button>
+    </div>
+  </div>
+
+  <div id="error" class="error"></div>
+</div>
+
+<script>
+  // Paste the Apps Script WEB APP URL here.
+  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbzW2Z3pj0W_547wcpLKp_CkeKYodTnKO_sNjQ99-0UUrDdObJ5O3b4R1ZOq1cg5DedYdQ/exec';
+
+  let questions = [];
+  let currentIndex = 0;
+
+  // One respondent session per browser tab/interview.
+  // Apps Script uses this ID to keep all answers from this interview
+  // in the same respondent column (H, I, J, ...).
+  // One new respondent session for each fresh page load.
+  // All answers in this interview use the same server-assigned column.
+  const respondentSessionId =
+    (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+  let ws = null;
+  let mediaStream = null;
+
+  let questionAudioUrl = null;
+  let questionAudioRequestId = 0;
+  let audioContext = null;
+  let source = null;
+  let processor = null;
+
+  let finalTranscript = '';
+  let interimTranscript = '';
+  let isRecording = false;
+
+  // Live English translation queue.
+  // Only finalized Deepgram segments are translated so the English text
+  // remains stable instead of changing on every interim result.
+  let translationQueue = [];
+  let translationBusy = false;
+  let translationGeneration = 0;
+  let translatedFinalSegments = [];
+  let translationFlushTimer = null;
+
+  function setStatus(text) {
+    document.getElementById('status').textContent = text;
+  }
+
+  function setError(text) {
+    document.getElementById('error').textContent = text || '';
+  }
+
+
+  function resetLiveEnglishTranslation(message) {
+    translationGeneration++;
+    if (translationFlushTimer) {
+      clearTimeout(translationFlushTimer);
+      translationFlushTimer = null;
+    }
+    translationQueue = [];
+    translationBusy = false;
+    translatedFinalSegments = [];
+
+    const box = document.getElementById('liveEnglishTranslation');
+    box.textContent = message || 'Waiting for speech...';
+  }
+
+  function normalizeLanguageCode(language) {
+    const value = String(language || '').trim().toLowerCase();
+    if (!value) return '';
+    return value.split(/[-_]/)[0];
+  }
+
+  function appendLiveEnglishTranslation(text, generation) {
+    if (generation !== translationGeneration) return;
+
+    const value = String(text || '').trim();
+    if (!value) return;
+
+    translatedFinalSegments.push(value);
+
+    document.getElementById('liveEnglishTranslation').textContent =
+      translatedFinalSegments.join(' ');
+  }
+
+  function queueLiveEnglishTranslation(text, language) {
+    const value = String(text || '').trim();
+    if (!value) return;
+
+    translationQueue.push({
+      text: value,
+      language: language,
+      generation: translationGeneration
+    });
+
+    // Batch very short finalized segments together. This reduces the number
+    // of Apps Script translation requests and makes timeouts much less likely.
+    if (translationFlushTimer) clearTimeout(translationFlushTimer);
+    translationFlushTimer = setTimeout(function() {
+      translationFlushTimer = null;
+      processLiveEnglishTranslationQueue();
+    }, 350);
+  }
+
+  function processLiveEnglishTranslationQueue() {
+    if (translationBusy || !translationQueue.length) return;
+
+    const generation = translationGeneration;
+    const batch = translationQueue.splice(0, translationQueue.length);
+    const sourceLanguage = normalizeLanguageCode(batch[0].language);
+    const combinedText = batch
+      .map(function(item) { return item.text; })
+      .join(' ');
+
+    translationBusy = true;
+
+    // English needs no translation.
+    if (sourceLanguage === 'en') {
+      appendLiveEnglishTranslation(combinedText, generation);
+      translationBusy = false;
+      if (translationQueue.length) processLiveEnglishTranslationQueue();
+      return;
+    }
+
+    jsonpWithParams('translate', {
+      text: combinedText,
+      sourceLanguage: sourceLanguage
+    }, {
+      timeoutMs: 30000,
+      timeoutMessage: 'Live translation request timed out.'
+    })
+      .then(function(data) {
+        if (generation !== translationGeneration) return;
+
+        const translated = String(data.translation || '').trim();
+
+        if (translated) {
+          appendLiveEnglishTranslation(translated, generation);
+        } else if (!translatedFinalSegments.length) {
+          document.getElementById('liveEnglishTranslation').textContent =
+            'Translation unavailable.';
+        }
+      })
+      .catch(function(err) {
+        if (generation !== translationGeneration) return;
+
+        document.getElementById('liveEnglishTranslation').textContent =
+          translatedFinalSegments.length
+            ? translatedFinalSegments.join(' ') + ' ' + '(translation delayed)'
+            : 'Translation unavailable: ' + (err.message || String(err));
+      })
+      .finally(function() {
+        translationBusy = false;
+        if (translationQueue.length) processLiveEnglishTranslationQueue();
+      });
+  }
+
+  function showQuestionSheetFields(q) {
+    const questionBox = document.getElementById('sheetQuestion');
+    const questionText = document.getElementById('sheetQuestionText');
+
+    const questionValue = String(q.englishQuestion || '').trim();
+
+    questionText.textContent = questionValue;
+    questionBox.style.display = questionValue ? 'block' : 'none';
+  }
+
+  function parseClosedAnswerOptions(text) {
+    return String(text || '')
+      .split(/\||;|\n/)
+      .map(function(value) { return value.trim(); })
+      .filter(Boolean);
+  }
+
+  function renderAnswerBox(q, selectedValues) {
+    const box = document.getElementById('sheetAnswers');
+    const help = document.getElementById('answerHelp');
+    const options = parseClosedAnswerOptions(q.closedAnswers);
+    const selected = Array.isArray(selectedValues)
+      ? selectedValues.map(function(value) { return String(value).trim(); })
+      : [];
+
+    box.innerHTML = '';
+
+    if (options.length) {
+      help.textContent = 'Select one or more responses, then click Save Answer.';
+
+      const list = document.createElement('div');
+      list.className = 'answer-checkbox-list';
+
+      options.forEach(function(option, index) {
+        const label = document.createElement('label');
+        label.className = 'answer-option';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = option;
+        checkbox.id = 'answerOption_' + index;
+        checkbox.checked = selected.indexOf(option) !== -1;
+
+        const span = document.createElement('span');
+        span.textContent = option;
+
+        label.appendChild(checkbox);
+        label.appendChild(span);
+        list.appendChild(label);
+      });
+
+      box.appendChild(list);
+      box.dataset.mode = 'checkbox';
+      return;
+    }
+
+    help.textContent = 'Enter or edit the answer, then click Save Answer.';
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'answer-textarea';
+    textarea.id = 'answerTextInput';
+    textarea.placeholder = 'Type or edit the answer here...';
+    textarea.value = selected.length ? selected.join('; ') : '';
+
+    box.appendChild(textarea);
+    box.dataset.mode = 'text';
+  }
+
+  function getAnswerBoxValue() {
+    const box = document.getElementById('sheetAnswers');
+
+    if (box.dataset.mode === 'checkbox') {
+      return Array.from(
+        box.querySelectorAll('input[type="checkbox"]:checked')
+      )
+        .map(function(input) { return String(input.value || '').trim(); })
+        .filter(Boolean)
+        .join('; ')
+        .trim();
+    }
+
+    const textarea = document.getElementById('answerTextInput');
+    return textarea
+      ? String(textarea.value || '').trim()
+      : '';
+  }
+
+  function getSelectedCheckboxValues() {
+    const box = document.getElementById('sheetAnswers');
+    if (box.dataset.mode !== 'checkbox') return [];
+
+    return Array.from(
+      box.querySelectorAll('input[type="checkbox"]:checked')
+    )
+      .map(function(input) { return String(input.value || '').trim(); })
+      .filter(Boolean);
+  }
+
+  function currentQuestion() {
+    return questions[currentIndex];
+  }
+
+  function renderQuestion() {
+    const q = currentQuestion();
+
+    if (!q) {
+      document.getElementById('counter').textContent = 'Finished';
+      document.getElementById('question').textContent = 'All questions completed.';
+      document.getElementById('language').textContent = '';
+      return;
+    }
+
+    document.getElementById('counter').textContent =
+      `Question ${currentIndex + 1} of ${questions.length}`;
+
+    document.getElementById('question').textContent = q.question;
+    showQuestionSheetFields(q);
+    document.getElementById('language').textContent =
+      `Language: ${q.language}`;
+
+    document.getElementById('transcript').textContent =
+      q.answer || 'Press Start Answer and speak.';
+
+    document.getElementById('saved').textContent = '';
+    renderAnswerBox(q);
+    document.getElementById('saveAnswerBtn').disabled = false;
+    resetLiveEnglishTranslation('Waiting for speech...');
+    setError('');
+    setStatus('');
+
+    resetQuestionAudio();
+    if (q.audioUrl) {
+      loadQuestionAudio(q.id);
+    }
+  }
+
+  function resetQuestionAudio() {
+    questionAudioRequestId++;
+
+    if (questionAudioUrl) {
+      URL.revokeObjectURL(questionAudioUrl);
+      questionAudioUrl = null;
+    }
+
+    const audio = document.getElementById('questionAudio');
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+
+    document.getElementById('questionAudioWrap').style.display = 'none';
+    document.getElementById('questionAudio').style.display = 'none';
+    document.getElementById('playQuestionBtn').disabled = true;
+    document.getElementById('audioStatus').textContent = '';
+  }
+
+  function loadQuestionAudio(id) {
+    const requestId = ++questionAudioRequestId;
+    const wrap = document.getElementById('questionAudioWrap');
+    const button = document.getElementById('playQuestionBtn');
+    const audio = document.getElementById('questionAudio');
+    const status = document.getElementById('audioStatus');
+
+    wrap.style.display = 'block';
+    button.disabled = true;
+    status.textContent = 'Loading question audio...';
+
+    jsonpWithParams('audio', { id: id })
+      .then(function(data) {
+        if (requestId !== questionAudioRequestId) return;
+
+        if (!data || !data.base64) {
+          throw new Error('No audio data was returned for this question.');
+        }
+
+        const binary = atob(data.base64);
+        const bytes = new Uint8Array(binary.length);
+
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+
+        const blob = new Blob(
+          [bytes],
+          { type: data.mimeType || 'audio/mpeg' }
+        );
+
+        questionAudioUrl = URL.createObjectURL(blob);
+        audio.src = questionAudioUrl;
+        audio.style.display = 'block';
+        button.disabled = false;
+        status.textContent = 'Question audio ready.';
+      })
+      .catch(function(err) {
+        if (requestId !== questionAudioRequestId) return;
+
+        button.disabled = true;
+        status.textContent =
+          'Audio unavailable: ' + (err.message || String(err));
+      });
+  }
+
+  function playQuestionAudio() {
+    const audio = document.getElementById('questionAudio');
+
+    if (!audio.src) return;
+
+    audio.currentTime = 0;
+    audio.play().catch(function(err) {
+      document.getElementById('audioStatus').textContent =
+        'Could not play audio: ' + (err.message || String(err));
+    });
+  }
+
+  function jsonp(action) {
+    return jsonpWithParams(action, {});
+  }
+
+  function jsonpWithParams(action, params, options) {
+    options = options || {};
+    const timeoutMs = Number(options.timeoutMs) || 20000;
+    const timeoutMessage = options.timeoutMessage || 'Backend request timed out.';
+
+    return new Promise((resolve, reject) => {
+      const requestId =
+        'req_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+      const frame = document.createElement('iframe');
+      frame.style.display = 'none';
+      frame.setAttribute('aria-hidden', 'true');
+
+      let settled = false;
+      const timer = setTimeout(() => {
+        finish();
+        reject(new Error(timeoutMessage));
+      }, timeoutMs);
+
+      function finish() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', onMessage);
+        if (frame.parentNode) frame.parentNode.removeChild(frame);
+      }
+
+      function onMessage(event) {
+        const data = event.data;
+        if (!data || data.type !== 'voiceBridgeResponse') return;
+        if (data.requestId !== requestId) return;
+
+        finish();
+
+        const payload = data.payload;
+        if (!payload || payload.ok === false) {
+          reject(new Error(payload && payload.error
+            ? payload.error
+            : 'Backend request failed.'));
+          return;
+        }
+
+        resolve(payload);
+      }
+
+      window.addEventListener('message', onMessage);
+
+      const query = new URLSearchParams();
+      query.set('action', 'bridge');
+      query.set('bridgeAction', action);
+      query.set('requestId', requestId);
+
+      Object.keys(params || {}).forEach(function(key) {
+        query.set(key, String(params[key]));
+      });
+
+      query.set('_', Date.now());
+
+      frame.src = BACKEND_URL + '?' + query.toString();
+      document.body.appendChild(frame);
+    });
+  }
+
+  async function loadQuestions() {
+    try {
+      setStatus('Loading questions...');
+      const data = await jsonp('questions');
+
+      questions = data.questions || [];
+
+      if (!questions.length) {
+        throw new Error('No questions were found in the Google Sheet.');
+      }
+
+      currentIndex = 0;
+      renderQuestion();
+      setStatus('Ready');
+    } catch (err) {
+      setStatus('Error');
+      setError(err.message || String(err));
+    }
+  }
+
+  async function getDeepgramToken() {
+    const data = await jsonp('token');
+    return data.token;
+  }
+
+  async function startAnswer() {
+    if (isRecording) return;
+
+    const q = currentQuestion();
+    if (!q) return;
+
+    setError('');
+    document.getElementById('saved').textContent = '';
+    resetLiveEnglishTranslation('Listening for speech...');
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = false;
+    finalTranscript = '';
+    interimTranscript = '';
+    document.getElementById('transcript').textContent = '';
+
+    try {
+      // Do not clear the respondent cell before recording.
+      // The eventual Save Answer action overwrites the same respondent cell,
+      // which avoids an unnecessary backend request and prevents a timeout
+      // from blocking microphone startup.
+      finalTranscript = '';
+      interimTranscript = '';
+      document.getElementById('transcript').textContent = '';
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error(
+          'Microphone access is unavailable. Open this page over HTTPS ' +
+          '(or localhost) in Chrome, Edge, or Safari.'
+        );
+      }
+
+      // Request microphone permission only once per interview page.
+      // Keep the MediaStream alive between questions.
+      const streamStillUsable =
+        mediaStream &&
+        mediaStream.getTracks().some(track => track.readyState === 'live');
+
+      if (!streamStillUsable) {
+        setStatus('Requesting microphone (first question only)...');
+
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      } else {
+        setStatus('Microphone already allowed.');
+      }
+
+      setStatus('Getting Deepgram connection token...');
+      const token = await getDeepgramToken();
+
+      await connectDeepgram(token, q.language);
+
+      isRecording = true;
+      setStatus('Listening... Speak now.');
+
+    } catch (err) {
+      console.error(err);
+      await cleanupAudio();
+
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = true;
+
+      setStatus('Error');
+      setError(err.message || String(err));
+    }
+  }
+
+  function connectDeepgram(token, language) {
+    return new Promise((resolve, reject) => {
+      const lang = language || 'en-US';
+
+      const params = new URLSearchParams({
+        model: 'nova-3',
+        language: lang,
+        encoding: 'linear16',
+        sample_rate: '16000',
+        channels: '1',
+        interim_results: 'true',
+        punctuate: 'true',
+        endpointing: '500'
+      });
+
+      const url = 'wss://api.deepgram.com/v1/listen?' + params.toString();
+
+      // Browser WebSocket cannot set Authorization headers.
+      // Deepgram supports the token through Sec-WebSocket-Protocol.
+      ws = new WebSocket(url, ['bearer', token]);
+
+      ws.onopen = () => {
+        try {
+          startAudioProcessing();
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          const transcript =
+            data.channel &&
+            data.channel.alternatives &&
+            data.channel.alternatives[0]
+              ? data.channel.alternatives[0].transcript
+              : '';
+
+          if (!transcript) return;
+
+          if (data.is_final) {
+            finalTranscript +=
+              (finalTranscript ? ' ' : '') + transcript;
+            interimTranscript = '';
+
+            // Translate only finalized Deepgram segments so the English
+            // translation stays stable while still appearing near real time.
+            queueLiveEnglishTranslation(transcript, language);
+          } else {
+            interimTranscript = transcript;
+          }
+
+          document.getElementById('transcript').textContent =
+            finalTranscript +
+            (interimTranscript
+              ? (finalTranscript ? ' ' : '') + interimTranscript
+              : '');
+        } catch (err) {
+          console.warn('Bad Deepgram message', err);
+        }
+      };
+
+      ws.onerror = () => {
+        reject(new Error('Deepgram WebSocket connection failed.'));
+      };
+
+      ws.onclose = (event) => {
+        if (isRecording) {
+          setError(
+            'Deepgram connection closed. Code: ' +
+            event.code
+          );
+        }
+      };
+    });
+  }
+
+  function startAudioProcessing() {
+    if (!mediaStream) {
+      throw new Error('Microphone stream is not available.');
+    }
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    source = audioContext.createMediaStreamSource(mediaStream);
+
+    // ScriptProcessorNode is widely supported in current browsers.
+    processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+    processor.onaudioprocess = function(event) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+      const input = event.inputBuffer.getChannelData(0);
+      const downsampled = downsampleBuffer(
+        input,
+        audioContext.sampleRate,
+        16000
+      );
+
+      if (downsampled.length > 0) {
+        const pcm = floatTo16BitPCM(downsampled);
+        ws.send(pcm);
+      }
+    };
+
+    source.connect(processor);
+    processor.connect(audioContext.destination);
+  }
+
+  function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
+    if (outputSampleRate === inputSampleRate) {
+      return buffer;
+    }
+
+    if (outputSampleRate > inputSampleRate) {
+      throw new Error('Output sample rate cannot exceed input sample rate.');
+    }
+
+    const ratio = inputSampleRate / outputSampleRate;
+    const newLength = Math.round(buffer.length / ratio);
+    const result = new Float32Array(newLength);
+
+    let offsetResult = 0;
+    let offsetBuffer = 0;
+
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer =
+        Math.round((offsetResult + 1) * ratio);
+
+      let accum = 0;
+      let count = 0;
+
+      for (
+        let i = offsetBuffer;
+        i < nextOffsetBuffer && i < buffer.length;
+        i++
+      ) {
+        accum += buffer[i];
+        count++;
+      }
+
+      result[offsetResult] = count ? accum / count : 0;
+      offsetResult++;
+      offsetBuffer = nextOffsetBuffer;
+    }
+
+    return result;
+  }
+
+  function floatTo16BitPCM(input) {
+    const output = new Int16Array(input.length);
+
+    for (let i = 0; i < input.length; i++) {
+      const s = Math.max(-1, Math.min(1, input[i]));
+      output[i] = s < 0
+        ? s * 0x8000
+        : s * 0x7FFF;
+    }
+
+    return output.buffer;
+  }
+
+  async function stopAnswer() {
+    if (!isRecording && !mediaStream) return;
+
+    isRecording = false;
+    setStatus('Finishing transcription...');
+    document.getElementById('stopBtn').disabled = true;
+
+    await finalizeDeepgram();
+
+    const answer = finalTranscript.trim();
+
+    await cleanupAudio();
+
+    if (!answer) {
+      document.getElementById('startBtn').disabled = false;
+      setStatus('No speech was transcribed.');
+      return;
+    }
+
+    const savedQuestionId = currentQuestion().id;
+
+    document.getElementById('transcript').textContent = answer;
+    document.getElementById('saved').textContent = '';
+    setStatus('Saving answer...');
+
+    try {
+      // Save the answer and retrieve Column G (Response) from the same row.
+      // The backend waits briefly after saving so any spreadsheet formula
+      // that populates Column G has time to update before it is read.
+      const data = await saveAnswerAndRetrieveG(savedQuestionId, answer);
+
+      const responseText = String(data.columnG || '').trim();
+      const liveEnglishBox = document.getElementById('liveEnglishTranslation');
+      const answerBox = document.getElementById('sheetAnswers');
+
+      liveEnglishBox.textContent = responseText
+        ? responseText
+        : 'No Response value returned from Column G.';
+
+      // For closed-ended questions, keep Column F as the editable checkbox list.
+      // For open-ended questions, place the transcription into the text editor.
+      if (String(currentQuestion().closedAnswers || '').trim()) {
+        renderAnswerBox(currentQuestion());
+      } else {
+        renderAnswerBox(currentQuestion(), [answer]);
+      }
+
+      document.getElementById('saved').textContent =
+        '✓ Answer saved to Google Sheets';
+
+      // Allow Start Answer to be clicked again for a retake.
+      // The next click clears the current respondent cell before recording.
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('nextBtn').disabled = false;
+      setStatus(responseText
+        ? 'Answer saved — Response retrieved'
+        : 'Answer saved — Column G is empty');
+
+    } catch (err) {
+      document.getElementById('saved').textContent = '';
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('nextBtn').disabled = false;
+      setStatus('Save error');
+      setError(err.message || String(err));
+    }
+  }
+
+  function finalizeDeepgram() {
+    return new Promise((resolve) => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        resolve();
+        return;
+      }
+
+      let done = false;
+      const timer = setTimeout(finish, 1500);
+
+      function finish() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve();
+      }
+
+      try {
+        ws.send(JSON.stringify({ type: 'Finalize' }));
+      } catch (e) {
+        finish();
+      }
+    });
+  }
+
+  async function cleanupAudio() {
+    try {
+      if (processor) {
+        processor.disconnect();
+        processor.onaudioprocess = null;
+      }
+
+      if (source) {
+        source.disconnect();
+      }
+
+      if (audioContext) {
+        await audioContext.close();
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+
+    processor = null;
+    source = null;
+    audioContext = null;
+
+    // IMPORTANT: keep mediaStream alive so the browser does not ask for
+    // microphone permission again on the next question.
+    // The microphone is stopped only when the interview page closes.
+
+    if (ws) {
+      try {
+        if (ws.readyState === WebSocket.OPEN ||
+            ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    ws = null;
+  }
+
+  function clearAnswerCell(id) {
+    return new Promise((resolve, reject) => {
+      const callbackName =
+        '__voiceClearCallback_' + Date.now() + '_' +
+        Math.random().toString(36).slice(2);
+
+      const script = document.createElement('script');
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Clear answer request timed out.'));
+      }, 15000);
+
+      window[callbackName] = function(data) {
+        cleanup();
+
+        if (!data || data.ok === false) {
+          reject(new Error(data && data.error
+            ? data.error
+            : 'Could not clear the previous answer.'));
+          return;
+        }
+
+        resolve(data);
+      };
+
+      function cleanup() {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      script.onerror = function() {
+        cleanup();
+        reject(new Error('Could not clear the previous answer from Apps Script.'));
+      };
+
+      const query = new URLSearchParams();
+      query.set('action', 'clearAnswer');
+      query.set('id', id);
+      query.set('respondentSessionId', respondentSessionId);
+      query.set('callback', callbackName);
+      query.set('_', Date.now());
+
+      script.src = BACKEND_URL + '?' + query.toString();
+      document.head.appendChild(script);
+    });
+  }
+
+
+  function saveAnswerAndRetrieveG(id, answer) {
+    if (!id || !answer) {
+      return Promise.reject(new Error('Missing question ID or answer.'));
+    }
+
+    // Save the answer and have Apps Script return the value from Column G
+    // for the same question row after the save has completed.
+    return jsonpWithParams('saveAndRetrieveG', {
+      id: id,
+      answer: answer,
+      respondentSessionId: respondentSessionId
+    }, {
+      timeoutMs: 30000,
+      timeoutMessage: 'Save and Response retrieval request timed out.'
+    });
+  }
+
+  async function saveEditableAnswer() {
+    if (isRecording) return;
+
+    const q = currentQuestion();
+    if (!q) return;
+
+    const answer = getAnswerBoxValue();
+
+    if (!answer) {
+      setStatus('Answer is empty');
+      setError('Please enter an answer before clicking Save Answer.');
+      return;
+    }
+
+    setError('');
+    document.getElementById('saveAnswerBtn').disabled = true;
+    setStatus('Saving edited answer...');
+
+    try {
+      const data = await saveEditableAnswerToSheet(q.id, answer);
+
+      document.getElementById('transcript').textContent = answer;
+      document.getElementById('saved').textContent =
+        '✓ Answer updated in Google Sheets';
+
+      const columnNumber = Number(data.respondentColumn || 0);
+      setStatus(columnNumber >= 8
+        ? (currentQuestion().closedAnswers
+            ? 'Selected responses saved — Respondent column updated'
+            : 'Answer updated — Respondent column saved')
+        : 'Answer updated');
+    } catch (err) {
+      setStatus('Save error');
+      setError(err.message || String(err));
+    } finally {
+      document.getElementById('saveAnswerBtn').disabled = false;
+    }
+  }
+
+  function saveEditableAnswerToSheet(id, answer) {
+    return jsonpWithParams('save', {
+      id: id,
+      answer: answer,
+      respondentSessionId: respondentSessionId
+    }, {
+      timeoutMs: 30000,
+      timeoutMessage: 'Save Answer request timed out.'
+    });
+  }
+
+  function nextQuestion() {
+    if (isRecording) {
+      setStatus('Stop & Save the current answer before moving to the next question.');
+      return;
+    }
+
+    if (currentIndex >= questions.length - 1) {
+      setStatus('All questions completed.');
+      return;
+    }
+
+    currentIndex++;
+    resetLiveEnglishTranslation('Waiting for speech...');
+    renderQuestion();
+
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+  }
+
+  function releaseMicrophone() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+    }
+  }
+
+  window.addEventListener('beforeunload', function() {
+    cleanupAudio();
+    releaseMicrophone();
+ 
+
+    if (questionAudioUrl) {
+      URL.revokeObjectURL(questionAudioUrl);
+      questionAudioUrl = null;
+    }
+  });
+
+  loadQuestions();
+</script>
+</body>
+</html>
